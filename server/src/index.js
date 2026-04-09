@@ -25,16 +25,13 @@ app.use(helmet());
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://business-directory-snowy.vercel.app",
   process.env.CLIENT_URL?.trim().replace(/\/$/, "")
 ].filter(Boolean);
 
-console.log('🌍 CORS Allowed Origins:', allowedOrigins);
-
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.log('🚫 CORS Blocked Origin:', origin);
