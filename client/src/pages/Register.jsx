@@ -144,11 +144,11 @@ const Register = () => {
                                     >
                                         {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Verify & Continue"}
                                     </button>
-                                    
+
                                     <div className="text-center">
                                         <p className="text-stone-500 text-sm">
                                             Didn't receive the code? {' '}
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={handleResendOtp}
                                                 className="text-orange-600 font-bold hover:underline"
@@ -157,8 +157,8 @@ const Register = () => {
                                             </button>
                                         </p>
                                     </div>
-                                    
-                                    <button 
+
+                                    <button
                                         type="button"
                                         onClick={() => setIsVerifying(false)}
                                         className="w-full text-stone-400 font-bold text-xs uppercase tracking-widest hover:text-stone-600 transition-colors"

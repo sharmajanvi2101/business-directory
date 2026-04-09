@@ -1,14 +1,16 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
+import PreUser from '../models/PreUser.js';
 import generateToken from '../utils/generateToken.js';
 import sendEmail from '../utils/sendEmail.js';
 
-// @desc    Register a new user
+// @desc    Start registration (send OTP)
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
     const { name, email, phone, password, role } = req.body;
 
+    // 1. Check if user already exists in MAIN collection
     const userExists = await User.findOne({
         $or: [{ email }, { phone }]
     });
@@ -19,60 +21,86 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error(`${field} is already registered`);
     }
 
-    const user = await User.create({
-        name,
-        email,
-        phone,
-        password,
-        role,
-        isVerified: true // <--- AUTO-VERIFY FOR NOW
-    });
+    // 2. Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    if (user) {
-        console.log(`✅ User ${user.email} registered and auto-verified!`);
-        
-        // Return user data same as login so they can be logged in automatically!
-        generateToken(res, user._id);
-        res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            role: user.role,
-            favorites: user.favorites || []
+    // 3. Save to PreUser (temporary storage)
+    // We update if already exists to avoid multiple pending registrations for one email
+    await PreUser.findOneAndUpdate(
+        { email },
+        { name, email, phone, password, role, otp },
+        { upsert: true, new: true }
+    );
+
+    console.log(`📡 Sending OTP to ${email}: ${otp}`);
+
+    try {
+        await sendEmail({
+            email,
+            subject: 'Email Verification - BizDirect',
+            message: `Your verification code is: ${otp}. It expires in 10 minutes.`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #ea580c; text-align: center;">Welcome to BizDirect</h2>
+                    <p>Use the following code to verify your email and complete your registration:</p>
+                    <div style="background: #fff7ed; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
+                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c;">${otp}</span>
+                    </div>
+                    <p>This code will expire in 10 minutes.</p>
+                </div>
+            `
         });
-    } else {
-        res.status(400);
-        throw new Error('Invalid user data');
+
+        res.status(200).json({
+            success: true,
+            message: 'Verification code sent to your email.'
+        });
+    } catch (error) {
+        console.error('Email sending failed:', error);
+        res.status(500);
+        throw new Error('Could not send verification email. Please try again.');
     }
 });
 
-// @desc    Verify email with OTP
+// @desc    Verify OTP & Complete Signup
 // @route   POST /api/auth/verify-email
 // @access  Public
 const verifyEmail = asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
 
-    const user = await User.findOne({
-        email,
-        verificationOTP: otp,
-        verificationOTPExpires: { $gt: Date.now() }
-    });
+    // 1. Find the temporary user data
+    const preUser = await PreUser.findOne({ email, otp });
 
-    if (!user) {
+    if (!preUser) {
         res.status(400);
         throw new Error('Invalid or expired verification code');
     }
 
-    user.isVerified = true;
-    user.verificationOTP = undefined;
-    user.verificationOTPExpires = undefined;
-    await user.save();
-
-    res.status(200).json({
-        message: 'Email verified successfully. You can now login.',
-        status: 'success'
+    // 2. Create the ACTUAL User account
+    const user = await User.create({
+        name: preUser.name,
+        email: preUser.email,
+        phone: preUser.phone,
+        password: preUser.password, // This will be hashed by User model pre-save hook
+        role: preUser.role,
+        isVerified: true
     });
+
+    if (user) {
+        // 3. Delete the temporary data
+        await PreUser.deleteOne({ email });
+
+        console.log(`✅ Registration complete for user: ${user.email}`);
+
+        res.status(201).json({
+            success: true,
+            message: 'Registration successful! You can now login.',
+            status: 'success'
+        });
+    } else {
+        res.status(400);
+        throw new Error('Account creation failed');
+    }
 });
 
 // @desc    Resend verification OTP
@@ -81,29 +109,24 @@ const verifyEmail = asyncHandler(async (req, res) => {
 const resendOTP = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
-    const user = await User.findOne({ email });
+    const preUser = await PreUser.findOne({ email });
 
-    if (!user) {
+    if (!preUser) {
         res.status(404);
-        throw new Error('User not found');
-    }
-
-    if (user.isVerified) {
-        res.status(400);
-        throw new Error('Email is already verified');
+        throw new Error('No pending registration found for this email');
     }
 
     // Generate new OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
 
-    user.verificationOTP = otp;
-    user.verificationOTPExpires = otpExpire;
-    await user.save();
+    preUser.otp = otp;
+    await preUser.save();
+
+    console.log(`📡 Resending OTP to ${email}: ${otp}`);
 
     try {
         await sendEmail({
-            email: user.email,
+            email,
             subject: 'Email Verification - BizDirect',
             message: `Your new verification code is: ${otp}. It expires in 10 minutes.`,
             html: `
