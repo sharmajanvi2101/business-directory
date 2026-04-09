@@ -29,7 +29,7 @@ const registerUser = asyncHandler(async (req, res) => {
     await PreUser.findOneAndUpdate(
         { email },
         { name, email, phone, password, role, otp },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
     );
 
     // 4. Send Email (in background - don't await so the user gets an instant response)
