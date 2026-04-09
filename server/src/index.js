@@ -1,7 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
@@ -16,8 +17,6 @@ import userRoutes from './routes/userRoutes.js';
 import businessRoutes from './routes/businessRoutes.js';
 import statsRoutes from './routes/statsRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
-
-dotenv.config();
 
 const app = express();
 
