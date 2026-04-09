@@ -23,12 +23,14 @@ const app = express();
 
 // Security Middleware
 app.use(helmet());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  process.env.CLIENT_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "https://business-directory-snowy.vercel.app"
-  ],
+  origin: allowedOrigins,
   credentials: true
 }));
 
