@@ -25,12 +25,14 @@ const registerUser = asyncHandler(async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // 3. Save to PreUser (temporary storage)
-    // We update if already exists to avoid multiple pending registrations for one email
     await PreUser.findOneAndUpdate(
         { email },
         { name, email, phone, password, role, otp },
         { upsert: true, returnDocument: 'after' }
     );
+
+    // SAFETY LOG: So you can see the code in Render Logs even if email is slow
+    console.log(`🔑 OTP for ${email} is: ${otp}`);
 
     // 4. Send Email (in background - don't await so the user gets an instant response)
     sendEmail({
