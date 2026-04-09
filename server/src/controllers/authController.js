@@ -32,34 +32,28 @@ const registerUser = asyncHandler(async (req, res) => {
         { upsert: true, new: true }
     );
 
-    console.log(`📡 Sending OTP to ${email}: ${otp}`);
-
-    try {
-        await sendEmail({
-            email,
-            subject: 'Email Verification - BizDirect',
-            message: `Your verification code is: ${otp}. It expires in 10 minutes.`,
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #ea580c; text-align: center;">Welcome to BizDirect</h2>
-                    <p>Use the following code to verify your email and complete your registration:</p>
-                    <div style="background: #fff7ed; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
-                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c;">${otp}</span>
-                    </div>
-                    <p>This code will expire in 10 minutes.</p>
+    // 4. Send Email (in background - don't await so the user gets an instant response)
+    sendEmail({
+        email,
+        subject: 'Email Verification - BizDirect',
+        message: `Your verification code is: ${otp}. It expires in 10 minutes.`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #ea580c; text-align: center;">Welcome to BizDirect</h2>
+                <p>Use the following code to verify your email and complete your registration:</p>
+                <div style="background: #fff7ed; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
+                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c;">${otp}</span>
                 </div>
-            `
-        });
+                <p>This code will expire in 10 minutes.</p>
+            </div>
+        `
+    }).catch(err => console.error('❌ Background Email Error:', err));
 
-        res.status(200).json({
-            success: true,
-            message: 'Verification code sent to your email.'
-        });
-    } catch (error) {
-        console.error('Email sending failed:', error);
-        res.status(500);
-        throw new Error('Could not send verification email. Please try again.');
-    }
+    // 5. Return immediate success
+    res.status(200).json({
+        success: true,
+        message: 'Verification code sent! Please check your email.'
+    });
 });
 
 // @desc    Verify OTP & Complete Signup
@@ -90,12 +84,21 @@ const verifyEmail = asyncHandler(async (req, res) => {
         // 3. Delete the temporary data
         await PreUser.deleteOne({ email });
 
-        console.log(`✅ Registration complete for user: ${user.email}`);
+        // 4. Generate token and log user in automatically
+        generateToken(res, user._id);
+
+        console.log(`✅ Registration complete and auto-logged in: ${user.email}`);
 
         res.status(201).json({
             success: true,
-            message: 'Registration successful! You can now login.',
-            status: 'success'
+            message: 'Email verified! Account created and logged in.',
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            profilePicture: user.profilePicture,
+            favorites: user.favorites || []
         });
     } else {
         res.status(400);
@@ -122,30 +125,24 @@ const resendOTP = asyncHandler(async (req, res) => {
     preUser.otp = otp;
     await preUser.save();
 
-    console.log(`📡 Resending OTP to ${email}: ${otp}`);
-
-    try {
-        await sendEmail({
-            email,
-            subject: 'Email Verification - BizDirect',
-            message: `Your new verification code is: ${otp}. It expires in 10 minutes.`,
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #ea580c; text-align: center;">New Verification Code</h2>
-                    <p>Use the following code to verify your email address:</p>
-                    <div style="background: #fff7ed; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
-                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c;">${otp}</span>
-                    </div>
-                    <p>This code will expire in 10 minutes.</p>
+    // Send email in background
+    sendEmail({
+        email,
+        subject: 'Email Verification - BizDirect',
+        message: `Your new verification code is: ${otp}. It expires in 10 minutes.`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #ea580c; text-align: center;">New Verification Code</h2>
+                <p>Use the following code to verify your email address:</p>
+                <div style="background: #fff7ed; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
+                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c;">${otp}</span>
                 </div>
-            `
-        });
+                <p>This code will expire in 10 minutes.</p>
+            </div>
+        `
+    }).catch(err => console.error('❌ Background Email Error:', err));
 
-        res.status(200).json({ message: 'Verification code resent successfully' });
-    } catch (error) {
-        res.status(500);
-        throw new Error('Email could not be sent');
-    }
+    res.status(200).json({ message: 'Verification code resent successfully' });
 });
 
 // @desc    Auth user & get token

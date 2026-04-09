@@ -59,9 +59,15 @@ const Register = () => {
 
         setLoading(true);
         try {
-            await authService.verifyEmail({ email: registeredEmail, otp: otpCode });
-            toast.success('Email verified! You can now login.');
-            navigate('/login', { state: location.state });
+            const res = await authService.verifyEmail({ email: registeredEmail, otp: otpCode });
+            
+            // Dispatch credentials for auto-login
+            dispatch(setCredentials({ ...res }));
+            
+            toast.success('Email verified! Welcome aboard.');
+            
+            // Redirect based on role instead of going to login page
+            redirectBasedOnRole(res.role);
         } catch (error) {
             toast.error(error?.message || 'Verification failed');
         } finally {
