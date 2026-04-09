@@ -19,61 +19,28 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error(`${field} is already registered`);
     }
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpire = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
     const user = await User.create({
         name,
         email,
         phone,
         password,
         role,
-        verificationOTP: otp,
-        verificationOTPExpires: otpExpire
+        isVerified: true // <--- AUTO-VERIFY FOR NOW
     });
 
     if (user) {
-        try {
-            // Log OTP for development/testing
-            if (process.env.NODE_ENV === 'development') {
-                console.log(`-----------------------------------------`);
-                console.log(`VERIFICATION OTP FOR ${user.email}: ${otp}`);
-                console.log(`-----------------------------------------`);
-            }
-
-            await sendEmail({
-                email: user.email,
-                subject: 'Email Verification - BizDirect',
-                message: `Your verification code is: ${otp}. It expires in 10 minutes.`,
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                        <h2 style="color: #ea580c; text-align: center;">Verify Your Email</h2>
-                        <p>Welcome to <strong>BizDirect</strong>! Please use the following code to verify your email address:</p>
-                        <div style="background: #fff7ed; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
-                            <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c;">${otp}</span>
-                        </div>
-                        <p>This code will expire in 10 minutes.</p>
-                        <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px;">
-                            If you didn't create an account, you can safely ignore this email.
-                        </p>
-                    </div>
-                `
-            });
-
-            res.status(201).json({
-                message: 'Please check your email for the verification code.',
-                email: user.email
-            });
-        } catch (error) {
-            console.error('Email send error:', error);
-
-            // Delete user if email fails so they can retry registration
-            await User.findByIdAndDelete(user._id);
-
-            res.status(500);
-            throw new Error(`Failed to send verification email: ${error.message}. Please check your email or try again.`);
-        }
+        console.log(`✅ User ${user.email} registered and auto-verified!`);
+        
+        // Return user data same as login so they can be logged in automatically!
+        generateToken(res, user._id);
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            favorites: user.favorites || []
+        });
     } else {
         res.status(400);
         throw new Error('Invalid user data');
