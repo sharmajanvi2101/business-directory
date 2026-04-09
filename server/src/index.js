@@ -26,8 +26,7 @@ app.use(helmet());
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "http://localhost:5174",
-    "https://localbusiness-directory.vercel.app"
+    "http://localhost:5174"
   ],
   credentials: true
 }));
