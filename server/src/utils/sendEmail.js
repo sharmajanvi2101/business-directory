@@ -13,6 +13,8 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendEmail = async (options) => {
+    console.log(`📧 Attempting to send email to: ${options.email}...`);
+
     const mailOptions = {
         from: `BizDirect <${process.env.EMAIL_FROM}>`,
         to: options.email,
@@ -21,7 +23,13 @@ const sendEmail = async (options) => {
         html: options.html,
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Email sent successfully to ${options.email}`);
+    } catch (error) {
+        console.error(`❌ Detailed Email Error: ${error.message}`);
+        throw error; // Rethrow so it can be caught in the controller
+    }
 };
 
 export default sendEmail;
