@@ -9,15 +9,16 @@ import sendEmail from '../utils/sendEmail.js';
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
     const { name, email, phone, password, role } = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
 
     // 1. Check if user already exists in MAIN collection
     const userExists = await User.findOne({
-        $or: [{ email }, { phone }]
+        $or: [{ email: normalizedEmail }, { phone }]
     });
 
     if (userExists) {
         res.status(400);
-        const field = userExists.email === email ? 'Email' : 'Phone number';
+        const field = userExists.email === normalizedEmail ? 'Email' : 'Phone number';
         throw new Error(`${field} is already registered`);
     }
 
@@ -26,13 +27,13 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // 3. Save to PreUser (temporary storage)
     await PreUser.findOneAndUpdate(
-        { email },
-        { name, email, phone, password, role, otp },
+        { email: normalizedEmail },
+        { name, email: normalizedEmail, phone, password, role, otp },
         { upsert: true, returnDocument: 'after' }
     );
 
     // SAFETY LOG: So you can see the code in Render Logs even if email is slow
-    console.log(`🔑 OTP for ${email} is: ${otp}`);
+    console.log(`🔑 OTP for ${normalizedEmail} is: ${otp}`);
 
     // 4. Send Email (in background - don't await so the user gets an instant response)
     sendEmail({
@@ -63,11 +64,15 @@ const registerUser = asyncHandler(async (req, res) => {
 // @access  Public
 const verifyEmail = asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
+
+    console.log(`🔍 Verifying email: ${normalizedEmail} with OTP: ${otp}`);
 
     // 1. Find the temporary user data
-    const preUser = await PreUser.findOne({ email, otp });
+    const preUser = await PreUser.findOne({ email: normalizedEmail, otp });
 
     if (!preUser) {
+        console.log(`❌ Invalid OTP for ${normalizedEmail}`);
         res.status(400);
         throw new Error('Invalid or expired verification code');
     }
@@ -84,7 +89,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
 
     if (user) {
         // 3. Delete the temporary data
-        await PreUser.deleteOne({ email });
+        await PreUser.deleteOne({ email: normalizedEmail });
 
         // 4. Generate token and log user in automatically
         generateToken(res, user._id);
@@ -103,6 +108,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
             favorites: user.favorites || []
         });
     } else {
+        console.log(`❌ User creation failed for ${normalizedEmail}`);
         res.status(400);
         throw new Error('Account creation failed');
     }
@@ -151,15 +157,41 @@ const resendOTP = asyncHandler(async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 const loginUser = asyncHandler(async (req, res) => {
+    console.log('--- Incoming Login Request ---');
+    
     const { email, password } = req.body;
+    
+    if (!email || !password) {
+        console.log('❌ Missing email or password in request body');
+        res.status(400);
+        throw new Error('Email and password are required');
+    }
 
-    const user = await User.findOne({ email }).select('+password');
+    const trimmedEmail = email.trim();
+    const normalizedEmail = trimmedEmail.toLowerCase();
+    const trimmedPassword = password.trim();
 
-    if (user && (await user.matchPassword(password))) {
+    console.log(`🔍 Attempting login for: [${normalizedEmail}]`);
+
+    let user = await User.findOne({ email: normalizedEmail }).select('+password');
+    
+    if (!user) {
+        console.log(`❌ User NOT FOUND using normalized email: ${normalizedEmail}`);
+        // Fallback search with original string
+        user = await User.findOne({ email: trimmedEmail }).select('+password');
+        if (user) {
+            console.log(`⚠️ User found via case-sensitive fallback: ${trimmedEmail}`);
+        }
+    }
+
+    if (user && (await user.matchPassword(trimmedPassword))) {
         if (!user.isVerified) {
+            console.log(`⚠️ User exists but not verified: ${normalizedEmail}`);
             res.status(403);
             throw new Error('Please verify your email to login');
         }
+        
+        console.log(`✅ Login successful: ${normalizedEmail}`);
         generateToken(res, user._id);
         res.status(200).json({
             _id: user._id,
@@ -171,6 +203,9 @@ const loginUser = asyncHandler(async (req, res) => {
             favorites: user.favorites || []
         });
     } else {
+        if (user) {
+            console.log(`❌ Invalid password for user: ${normalizedEmail}`);
+        }
         res.status(401);
         throw new Error('Invalid email or password');
     }

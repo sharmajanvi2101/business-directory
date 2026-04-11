@@ -101,7 +101,8 @@ const seedData = async () => {
                 email: 'admin@bizdirect.com',
                 password: 'password123',
                 phone: '9999999999',
-                role: 'admin'
+                role: 'admin',
+                isVerified: true
             });
         }
 
@@ -118,7 +119,8 @@ const seedData = async () => {
                     email,
                     password: 'password123',
                     phone: `888888888${i}`,
-                    role: 'customer'
+                    role: 'customer',
+                    isVerified: true
                 });
             }
             reviewers.push(u);
