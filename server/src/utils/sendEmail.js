@@ -1,39 +1,29 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // true for 465
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-        rejectUnauthorized: false
-    },
-    connectionTimeout: 25000, // Increased timeout
-    greetingTimeout: 25000
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (options) => {
-    console.log(`📧 Attempting to send email to: ${options.email}...`);
-
-    const mailOptions = {
-        from: `BizDirect <${process.env.EMAIL_FROM}>`,
-        to: options.email,
-        subject: options.subject,
-        text: options.message,
-        html: options.html,
-    };
+    console.log(`📧 Attempting to send email via Resend to: ${options.email}...`);
 
     try {
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Email sent successfully to ${options.email}`);
+        const { data, error } = await resend.emails.send({
+            from: 'BizDirect <onboarding@resend.dev>',
+            to: options.email,
+            subject: options.subject,
+            html: options.html,
+        });
+
+        if (error) {
+            console.error(`❌ Resend Error: ${error.message}`);
+            throw new Error(error.message);
+        }
+
+        console.log(`✅ Email sent successfully via Resend. ID: ${data.id}`);
     } catch (error) {
-        console.error(`❌ Detailed Email Error: ${error.message}`);
-        throw error; // Rethrow so it can be caught in the controller
+        console.error(`❌ Resend Exception: ${error.message}`);
+        throw error;
     }
 };
 
