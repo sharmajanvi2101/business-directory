@@ -158,9 +158,9 @@ const resendOTP = asyncHandler(async (req, res) => {
 // @access  Public
 const loginUser = asyncHandler(async (req, res) => {
     console.log('--- Incoming Login Request ---');
-    
+
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
         console.log('❌ Missing email or password in request body');
         res.status(400);
@@ -176,17 +176,20 @@ const loginUser = asyncHandler(async (req, res) => {
     let user = await User.findOne({ email: normalizedEmail }).select('+password');
     
     if (!user) {
+        // Check if they are stuck in the "PreUser" (unverified) state
+        const pendingUser = await PreUser.findOne({ email: normalizedEmail });
+        if (pendingUser) {
+            res.status(403);
+            throw new Error('Your email is not verified. Please complete the verification step first.');
+        }
+
         console.log(`❌ User NOT FOUND using normalized email: ${normalizedEmail}`);
         // Fallback search with original string
         user = await User.findOne({ email: trimmedEmail }).select('+password');
-        if (user) {
-            console.log(`⚠️ User found via case-sensitive fallback: ${trimmedEmail}`);
-        }
     }
 
     if (user && (await user.matchPassword(trimmedPassword))) {
         if (!user.isVerified) {
-            console.log(`⚠️ User exists but not verified: ${normalizedEmail}`);
             res.status(403);
             throw new Error('Please verify your email to login');
         }
