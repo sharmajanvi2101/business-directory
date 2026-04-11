@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
     },
     isVerified: {
         type: Boolean,
-        default: false
+        default: true
     },
     favorites: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -46,8 +46,6 @@ const userSchema = new mongoose.Schema({
     }],
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-    verificationOTP: String,
-    verificationOTPExpires: Date,
 }, {
     timestamps: true
 });

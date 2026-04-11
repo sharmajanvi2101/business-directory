@@ -21,14 +21,6 @@ const authService = {
         const response = await api.delete('/auth/profile');
         return response.data;
     },
-    verifyEmail: async (data) => {
-        const response = await api.post('/auth/verify-email', data);
-        return response.data;
-    },
-    resendOTP: async (data) => {
-        const response = await api.post('/auth/resend-otp', data);
-        return response.data;
-    },
     updateProfile: async (userData) => {
         const response = await api.put('/auth/profile', userData);
         return response.data;

@@ -4,7 +4,7 @@ dotenv.config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const sendEmail = async (options) => {
+export const sendEmail = async (options) => {
     console.log(`📧 Attempting to send email via Resend to: ${options.email}...`);
 
     try {
@@ -21,10 +21,24 @@ const sendEmail = async (options) => {
         }
 
         console.log(`✅ Email sent successfully via Resend. ID: ${data.id}`);
+        return data;
     } catch (error) {
         console.error(`❌ Resend Exception: ${error.message}`);
         throw error;
     }
 };
 
-export default sendEmail;
+export const sendEmailTest = async () => {
+    try {
+        const response = await resend.emails.send({
+            from: 'onboarding@resend.dev', // default testing email
+            to: 'your_email@gmail.com',
+            subject: 'Hello from Resend',
+            html: '<h1>Email working 🚀</h1>',
+        });
+
+        console.log("Email sent:", response);
+    } catch (error) {
+        console.log("Error sending email:", error);
+    }
+};

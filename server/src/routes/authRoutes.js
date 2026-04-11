@@ -5,9 +5,7 @@ import {
     logoutUser,
     getUserProfile,
     updateUserProfile,
-    deleteUserProfile,
-    verifyEmail,
-    resendOTP
+    deleteUserProfile
 } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -16,8 +14,7 @@ const router = express.Router();
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post('/logout', logoutUser);
-router.post('/verify-email', verifyEmail);
-router.post('/resend-otp', resendOTP);
+
 router
     .route('/profile')
     .get(protect, getUserProfile)

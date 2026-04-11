@@ -1,17 +1,16 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
-import PreUser from '../models/PreUser.js';
 import generateToken from '../utils/generateToken.js';
-import sendEmail from '../utils/sendEmail.js';
+import { sendEmail } from '../utils/sendEmail.js';
 
-// @desc    Start registration (send OTP)
+// @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
     const { name, email, phone, password, role } = req.body;
     const normalizedEmail = email.trim().toLowerCase();
 
-    // 1. Check if user already exists in MAIN collection
+    // 1. Check if user already exists
     const userExists = await User.findOne({
         $or: [{ email: normalizedEmail }, { phone }]
     });
@@ -22,74 +21,32 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error(`${field} is already registered`);
     }
 
-    // 2. Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // 3. Save to PreUser (temporary storage)
-    await PreUser.findOneAndUpdate(
-        { email: normalizedEmail },
-        { name, email: normalizedEmail, phone, password, role, otp },
-        { upsert: true, returnDocument: 'after' }
-    );
-
-    // SAFETY LOG: So you can see the code in Render Logs even if email is slow
-    console.log(`🔑 OTP for ${normalizedEmail} is: ${otp}`);
-
-    // 4. Send Email (in background - don't await so the user gets an instant response)
-    sendEmail({
-        email,
-        subject: 'Email Verification - BizDirect',
-        message: `Your verification code is: ${otp}. It expires in 10 minutes.`,
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                <h2 style="color: #ea580c; text-align: center;">Welcome to BizDirect</h2>
-                <p>Use the following code to verify your email and complete your registration:</p>
-                <div style="background: #fff7ed; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
-                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c;">${otp}</span>
-                </div>
-                <p>This code will expire in 10 minutes.</p>
-            </div>
-        `
-    }).catch(err => console.error('❌ Background Email Error:', err));
-
-    // 5. Return immediate success
-    res.status(200).json({
-        success: true,
-        message: 'Verification code sent! Please check your email.'
-    });
-});
-
-// @desc    Verify OTP & Complete Signup
-// @route   POST /api/auth/verify-email
-// @access  Public
-const verifyEmail = asyncHandler(async (req, res) => {
-    const { email, otp } = req.body;
-    const normalizedEmail = email.trim().toLowerCase();
-
-    console.log(`🔍 Verifying email: ${normalizedEmail} with OTP: ${otp}`);
-
-    // 1. Find the temporary user data
-    const preUser = await PreUser.findOne({ email: normalizedEmail, otp });
-
-    if (!preUser) {
-        console.log(`❌ Invalid OTP for ${normalizedEmail}`);
-        res.status(400);
-        throw new Error('Invalid or expired verification code');
-    }
-
-    // 2. Create the ACTUAL User account
+    // 2. Create the User account directly
     const user = await User.create({
-        name: preUser.name,
-        email: preUser.email,
-        phone: preUser.phone,
-        password: preUser.password, // This will be hashed by User model pre-save hook
-        role: preUser.role,
-        isVerified: true
+        name,
+        email: normalizedEmail,
+        phone,
+        password,
+        role,
+        isVerified: true // Default to true as OTP functionality is removed
     });
 
     if (user) {
-        // 3. Delete the temporary data
-        await PreUser.deleteOne({ email: normalizedEmail });
+        // 3. Send Welcome Email (in background)
+        sendEmail({
+            email: normalizedEmail,
+            subject: 'Welcome to BizDirect',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #ea580c; text-align: center;">Welcome to BizDirect, ${name}!</h2>
+                    <p>Your account has been successfully created. We are excited to have you on board!</p>
+                    <p>You can now login and explore our business directory.</p>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="${process.env.CLIENT_URL || '#'}" style="background-color: #ea580c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Dashboard</a>
+                    </div>
+                </div>
+            `
+        }).catch(err => console.error('❌ Background Welcome Email Error:', err));
 
         // 4. Generate token and log user in automatically
         generateToken(res, user._id);
@@ -106,49 +63,9 @@ const verifyEmail = asyncHandler(async (req, res) => {
             favorites: user.favorites || []
         });
     } else {
-        console.log(`❌ User creation failed for ${normalizedEmail}`);
         res.status(400);
         throw new Error('Account creation failed');
     }
-});
-
-// @desc    Resend verification OTP
-// @route   POST /api/auth/resend-otp
-// @access  Public
-const resendOTP = asyncHandler(async (req, res) => {
-    const { email } = req.body;
-
-    const preUser = await PreUser.findOne({ email });
-
-    if (!preUser) {
-        res.status(404);
-        throw new Error('No pending registration found for this email');
-    }
-
-    // Generate new OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    preUser.otp = otp;
-    await preUser.save();
-
-    // Send email in background
-    sendEmail({
-        email,
-        subject: 'Email Verification - BizDirect',
-        message: `Your new verification code is: ${otp}. It expires in 10 minutes.`,
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                <h2 style="color: #ea580c; text-align: center;">New Verification Code</h2>
-                <p>Use the following code to verify your email address:</p>
-                <div style="background: #fff7ed; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
-                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c;">${otp}</span>
-                </div>
-                <p>This code will expire in 10 minutes.</p>
-            </div>
-        `
-    }).catch(err => console.error('❌ Background Email Error:', err));
-
-    res.status(200).json({ message: 'Verification code resent successfully' });
 });
 
 // @desc    Auth user & get token
@@ -160,38 +77,18 @@ const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        console.log('❌ Missing email or password in request body');
         res.status(400);
         throw new Error('Email and password are required');
     }
 
-    const trimmedEmail = email.trim();
-    const normalizedEmail = trimmedEmail.toLowerCase();
+    const normalizedEmail = email.trim().toLowerCase();
     const trimmedPassword = password.trim();
 
     console.log(`🔍 Attempting login for: [${normalizedEmail}]`);
 
-    let user = await User.findOne({ email: normalizedEmail }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
     
-    if (!user) {
-        // Check if they are stuck in the "PreUser" (unverified) state
-        const pendingUser = await PreUser.findOne({ email: normalizedEmail });
-        if (pendingUser) {
-            res.status(403);
-            throw new Error('Your email is not verified. Please complete the verification step first.');
-        }
-
-        console.log(`❌ User NOT FOUND using normalized email: ${normalizedEmail}`);
-        // Fallback search with original string
-        user = await User.findOne({ email: trimmedEmail }).select('+password');
-    }
-
     if (user && (await user.matchPassword(trimmedPassword))) {
-        if (!user.isVerified) {
-            res.status(403);
-            throw new Error('Please verify your email to login');
-        }
-        
         console.log(`✅ Login successful: ${normalizedEmail}`);
         generateToken(res, user._id);
         res.status(200).json({
@@ -204,9 +101,6 @@ const loginUser = asyncHandler(async (req, res) => {
             favorites: user.favorites || []
         });
     } else {
-        if (user) {
-            console.log(`❌ Invalid password for user: ${normalizedEmail}`);
-        }
         res.status(401);
         throw new Error('Invalid email or password');
     }
@@ -249,7 +143,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
     if (user) {
         user.name = req.body.name || user.name;
-        user.email = req.body.email || user.email;
+        user.email = (req.body.email || user.email).toLowerCase();
         user.phone = req.body.phone || user.phone;
         user.profilePicture = req.body.profilePicture || user.profilePicture;
 
@@ -306,7 +200,5 @@ export {
     logoutUser,
     getUserProfile,
     updateUserProfile,
-    deleteUserProfile,
-    verifyEmail,
-    resendOTP
+    deleteUserProfile
 };
