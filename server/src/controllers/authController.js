@@ -41,26 +41,15 @@ const registerUser = asyncHandler(async (req, res) => {
                     <h2 style="color: #ea580c; text-align: center;">Welcome to BizDirect, ${name}!</h2>
                     <p>Your account has been successfully created. We are excited to have you on board!</p>
                     <p>You can now login and explore our business directory.</p>
-                    <div style="text-align: center; margin-top: 30px;">
-                        <a href="${process.env.CLIENT_URL || '#'}" style="background-color: #ea580c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Dashboard</a>
-                    </div>
                 </div>
             `
         }).catch(err => console.error('❌ Background Welcome Email Error:', err));
 
-        // 4. Generate token and log user in automatically
-        generateToken(res, user._id);
-
-        console.log(`✅ Registration complete and auto-logged in: ${user.email}`);
+        console.log(`✅ Registration complete: ${user.email}`);
 
         res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            role: user.role,
-            profilePicture: user.profilePicture,
-            favorites: user.favorites || []
+            success: true,
+            message: 'Registration successful! Please login to continue.'
         });
     } else {
         res.status(400);

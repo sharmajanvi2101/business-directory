@@ -15,7 +15,6 @@ const Register = () => {
     const isFromListing = location.state?.from === '/add-business';
     const [selectedRole, setSelectedRole] = useState(isFromListing ? 'owner' : 'customer');
 
-    const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const { register, handleSubmit, formState: { errors }, watch } = useForm();
@@ -26,13 +25,10 @@ const Register = () => {
             const payload = { ...data, role: selectedRole };
             const res = await authService.register(payload);
             
-            // Dispatch credentials for auto-login
-            dispatch(setCredentials({ ...res }));
+            toast.success(res.message || 'Account created! Please login.');
             
-            toast.success('Account created! Welcome aboard.');
-            
-            // Redirect based on role
-            redirectBasedOnRole(res.role);
+            // Redirect to login page
+            navigate('/login', { state: location.state });
         } catch (error) {
             toast.error(error?.message || 'Registration failed');
         } finally {
@@ -40,12 +36,6 @@ const Register = () => {
         }
     };
 
-    const redirectBasedOnRole = (role) => {
-        if (role === 'admin') navigate('/admin');
-        else if (role === 'subadmin') navigate('/subadmin');
-        else if (role === 'owner') navigate('/owner/dashboard');
-        else navigate('/');
-    };
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-6 mt-16">
