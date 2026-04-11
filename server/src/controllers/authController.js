@@ -97,8 +97,6 @@ const verifyEmail = asyncHandler(async (req, res) => {
         console.log(`✅ Registration complete and auto-logged in: ${user.email}`);
 
         res.status(201).json({
-            success: true,
-            message: 'Email verified! Account created and logged in.',
             _id: user._id,
             name: user.name,
             email: user.email,
