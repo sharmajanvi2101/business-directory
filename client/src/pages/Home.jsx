@@ -926,28 +926,44 @@ const Home = () => {
                 {comparisonList.length > 0 && (
                     <motion.div
                         initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }}
-                        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[80] w-[calc(100%-1.5rem)] max-w-2xl bg-stone-900 border border-white/10 p-4 md:p-5 rounded-2xl md:rounded-[2.5rem] shadow-2xl backdrop-blur-xl"
+                        className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-1.5rem)] max-w-xl bg-stone-900/95 border border-white/10 px-4 py-3 md:px-6 md:py-4 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl"
                     >
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 md:gap-6">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
                                 <div className="flex -space-x-2 md:-space-x-3">
-                                    {comparisonList.slice(0, 4).map(id => (
-                                        <div key={id} className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-stone-800 bg-stone-700 flex items-center justify-center text-[10px] text-white font-bold">
+                                    {comparisonList.slice(0, 3).map(id => (
+                                        <div key={id} className="w-9 h-9 md:w-11 md:h-11 rounded-full border-2 border-stone-800 bg-stone-800 flex items-center justify-center text-[10px] text-white font-bold shadow-lg ring-1 ring-white/5">
                                             {id.slice(-2).toUpperCase()}
                                         </div>
                                     ))}
+                                    {comparisonList.length > 3 && (
+                                        <div className="w-9 h-9 md:w-11 md:h-11 rounded-full border-2 border-stone-800 bg-stone-800 flex items-center justify-center text-[10px] text-white font-bold shadow-lg ring-1 ring-white/5">
+                                            +{comparisonList.length - 3}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="hidden xs:block">
-                                    <p className="text-white text-[10px] md:text-xs font-black uppercase tracking-widest">{comparisonList.length} Selected</p>
-                                    <p className="text-stone-600 text-[10px] font-medium hidden md:block">Compare them side-by-side</p>
+                                    <p className="text-white text-[10px] md:text-xs font-black uppercase tracking-[0.15em]">{comparisonList.length} Selected</p>
+                                    <p className="text-stone-500 text-[9px] font-bold md:block hidden">Side-by-side</p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 md:gap-3">
-                                <button onClick={() => { localStorage.setItem('comparisonList', JSON.stringify([])); setComparisonList([]); }}
-                                    className="text-stone-500 hover:text-white px-2 py-1 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors">Clear</button>
-                                <Link to="/compare" className={`px-4 py-2.5 md:px-8 md:py-3.5 rounded-xl md:rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all shadow-lg ${comparisonList.length >= 2 ? 'bg-primary-600 text-white shadow-primary-900/20 hover:scale-105 active:scale-95' : 'bg-stone-800 text-stone-500 cursor-not-allowed opacity-50'}`}>
-                                    {comparisonList.length < 2 ? `+ Add ${2 - comparisonList.length}` : 'Compare Now'}
+                            <div className="flex items-center gap-2 md:gap-4">
+                                <button 
+                                    onClick={() => { localStorage.setItem('comparisonList', JSON.stringify([])); setComparisonList([]); }}
+                                    className="text-stone-500 hover:text-white px-2 py-2 text-[10px] font-black uppercase tracking-widest transition-all"
+                                >
+                                    Clear
+                                </button>
+                                <Link 
+                                    to="/compare" 
+                                    className={`px-5 py-3 md:px-8 md:py-3.5 rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest transition-all shadow-xl ${
+                                        comparisonList.length >= 2 
+                                        ? 'bg-[#ea580c] text-white shadow-orange-900/40 hover:scale-105 active:scale-95' 
+                                        : 'bg-stone-800 text-stone-500 cursor-not-allowed'
+                                    }`}
+                                >
+                                    {comparisonList.length < 2 ? `Add ${2 - comparisonList.length} more` : 'Compare'}
                                 </Link>
                             </div>
                         </div>
