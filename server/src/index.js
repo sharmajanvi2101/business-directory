@@ -20,26 +20,33 @@ import reviewRoutes from './routes/reviewRoutes.js';
 
 const app = express();
 
+// 1. Health check (ABOVE CORS/Security to verify server is up)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Server is healthy', timestamp: new Date() });
+});
+
 // Security Middleware
 app.use(helmet());
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "https://business-directory-snowy.vercel.app",
 ].filter(Boolean);
 
-// Add CLIENT_URL from env if it exists
 if (process.env.CLIENT_URL) {
   const clientUrl = process.env.CLIENT_URL.trim().replace(/\/$/, "");
-  if (!allowedOrigins.includes(clientUrl)) {
-    allowedOrigins.push(clientUrl);
-  }
+  if (!allowedOrigins.includes(clientUrl)) allowedOrigins.push(clientUrl);
 }
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl) or if origin is in whitelist
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Check if origin matches exactly or is a Vercel preview
+    const isAllowed = !origin || 
+                     allowedOrigins.includes(origin) || 
+                     origin.endsWith(".vercel.app");
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
       console.log('🚫 CORS Blocked Origin:', origin);
@@ -48,7 +55,8 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Set-Cookie']
 }));
 
 // Body Parser Middleware
@@ -69,10 +77,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/businesses', businessRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/reviews', reviewRoutes);
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'Server is healthy' });
-});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
