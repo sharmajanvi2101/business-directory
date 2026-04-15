@@ -26,11 +26,19 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "https://business-directory-snowy.vercel.app",
-  process.env.CLIENT_URL?.trim().replace(/\/$/, "")
 ].filter(Boolean);
+
+// Add CLIENT_URL from env if it exists
+if (process.env.CLIENT_URL) {
+  const clientUrl = process.env.CLIENT_URL.trim().replace(/\/$/, "");
+  if (!allowedOrigins.includes(clientUrl)) {
+    allowedOrigins.push(clientUrl);
+  }
+}
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl) or if origin is in whitelist
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -40,7 +48,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Body Parser Middleware

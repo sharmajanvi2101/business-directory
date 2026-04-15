@@ -65,7 +65,9 @@ const categoryImages = {
 
 const cities = [
     { name: 'Palanpur', state: 'Gujarat', country: 'India', lat: 24.1722, lng: 72.4333 },
-    { name: 'Ahmedabad', state: 'Gujarat', country: 'India', lat: 23.0225, lng: 72.5714 }
+    { name: 'Ahmedabad', state: 'Gujarat', country: 'India', lat: 23.0225, lng: 72.5714 },
+    { name: 'Patan', state: 'Gujarat', country: 'India', lat: 23.8500, lng: 72.1167 },
+    { name: 'Saraswati', state: 'Gujarat', country: 'India', lat: 23.8687, lng: 72.0620 }
 ];
 
 const fakeReviewComments = [
@@ -353,6 +355,129 @@ const seedData = async () => {
                 images: ['/uploads/mahesh_fruits.jpg'],
                 coverImage: '/uploads/mahesh_fruits.jpg',
                 location: { type: 'Point', coordinates: [72.4270, 24.1750] }
+            });
+        }
+
+        // Add spotlight businesses specifically for Patan
+        const patan = createdCities.find(c => c.name === 'Patan');
+        if (patan) {
+            const clothingCat = createdCategories.find(c => c.name === 'Clothing Shop');
+            const medicalCat = createdCategories.find(c => c.name === 'Medical Store / Pharmacy');
+            const sweetCat = createdCategories.find(c => c.name === 'Sweet Shop (Mithai Shop)');
+            const restaurantCat = createdCategories.find(c => c.name === 'Restaurants');
+
+            businesses.push({
+                name: 'Patan Patola House',
+                description: 'World-famous authentic Patola sarees and heritage handloom collections.',
+                category: clothingCat?._id,
+                city: patan._id,
+                slug: 'patan-patola-house',
+                address: 'Salvi Wada, Patan',
+                phone: '+91 9876543230',
+                email: 'info@patanpatola.com',
+                owner: owner._id,
+                isVerified: true,
+                images: [categoryImages['Clothing Shop']],
+                coverImage: categoryImages['Clothing Shop'],
+                location: { type: 'Point', coordinates: [72.1167, 23.8500] }
+            });
+
+            businesses.push({
+                name: 'Vav View Restaurant',
+                description: 'Enjoy delicious Punjabi and Kathiyawadi food with a beautiful ambiance near Rani ki Vav.',
+                category: restaurantCat?._id,
+                city: patan._id,
+                slug: 'vav-view-restaurant',
+                address: 'Near Rani ki Vav, Patan',
+                phone: '+91 9876543231',
+                owner: owner._id,
+                isVerified: true,
+                images: [categoryImages['Restaurants']],
+                coverImage: categoryImages['Restaurants'],
+                location: { type: 'Point', coordinates: [72.1180, 23.8510] }
+            });
+
+            businesses.push({
+                name: 'Patan Sweet Mart',
+                description: 'Original Patan sweets, specializing in Kaju Katli and traditional Gujarati snacks.',
+                category: sweetCat?._id,
+                city: patan._id,
+                slug: 'patan-sweet-mart',
+                address: 'Bagwada Darwaja, Patan',
+                phone: '+91 9876543232',
+                owner: owner._id,
+                isVerified: true,
+                images: [categoryImages['Sweet Shop (Mithai Shop)']],
+                coverImage: categoryImages['Sweet Shop (Mithai Shop)'],
+                location: { type: 'Point', coordinates: [72.1150, 23.8490] }
+            });
+
+            businesses.push({
+                name: 'Sahyog Medical Agency',
+                description: 'Trusted pharmacy since 1980, providing all essential medicines and healthcare supplies.',
+                category: medicalCat?._id,
+                city: patan._id,
+                slug: 'sahyog-medical-agency',
+                address: 'Civil Road, Patan',
+                phone: '+91 9876543233',
+                owner: owner._id,
+                isVerified: true,
+                images: [categoryImages['Medical Store / Pharmacy']],
+                coverImage: categoryImages['Medical Store / Pharmacy'],
+                location: { type: 'Point', coordinates: [72.1200, 23.8530] }
+            });
+        }
+
+        // Add spotlight businesses specifically for Saraswati
+        const saraswati = createdCities.find(c => c.name === 'Saraswati');
+        if (saraswati) {
+            const groceryCat = createdCategories.find(c => c.name.includes('Grocery'));
+            const dairyCat = createdCategories.find(c => c.name.includes('Dairy'));
+            const hardwareCat = createdCategories.find(c => c.name.includes('Hardware'));
+
+            businesses.push({
+                name: 'Saraswati Agri-Center',
+                description: 'Quality seeds, fertilizers and hardware tools for local farmers.',
+                category: hardwareCat?._id,
+                city: saraswati._id,
+                slug: 'saraswati-agri-center',
+                address: 'Main Chokdi, Saraswati',
+                phone: '+91 9876543240',
+                owner: owner._id,
+                isVerified: true,
+                images: [categoryImages['Hardware Shop']],
+                coverImage: categoryImages['Hardware Shop'],
+                location: { type: 'Point', coordinates: [72.0620, 23.8687] }
+            });
+
+            businesses.push({
+                name: 'Jay Ambe Provision Store',
+                description: 'All daily household needs and fresh groceries at wholesale rates.',
+                category: groceryCat?._id,
+                city: saraswati._id,
+                slug: 'jay-ambe-provision-saraswati',
+                address: 'Near Taluka Panchayat, Saraswati',
+                phone: '+91 9876543241',
+                owner: owner._id,
+                isVerified: true,
+                images: [categoryImages['Kirana / Grocery Store']],
+                coverImage: categoryImages['Kirana / Grocery Store'],
+                location: { type: 'Point', coordinates: [72.0630, 23.8690] }
+            });
+
+            businesses.push({
+                name: 'Saraswati Dudh Mandli',
+                description: 'Fresh milk collection and distribution center serving the local community.',
+                category: dairyCat?._id,
+                city: saraswati._id,
+                slug: 'saraswati-dudh-mandli',
+                address: 'Milk Dairy Road, Saraswati',
+                phone: '+91 9876543242',
+                owner: owner._id,
+                isVerified: true,
+                images: [categoryImages['Dairy / Milk Shop']],
+                coverImage: categoryImages['Dairy / Milk Shop'],
+                location: { type: 'Point', coordinates: [72.0610, 23.8670] }
             });
         }
 

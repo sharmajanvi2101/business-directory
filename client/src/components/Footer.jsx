@@ -37,6 +37,8 @@ const Footer = () => {
                             title: 'Popular Cities',
                             links: [
                                 { label: 'Palanpur', href: '/search?city=Palanpur' },
+                                { label: 'Patan', href: '/search?city=Patan' },
+                                { label: 'Saraswati', href: '/search?city=Saraswati' },
                                 { label: 'Ahmedabad', href: '/search?city=Ahmedabad' },
                                 { label: 'Vadodara', href: '/search?city=Vadodara' }
                             ]
@@ -69,7 +71,7 @@ const Footer = () => {
                         <Link to="/" className="hover:text-white transition-colors">Contact</Link>
                     </div>
                     <p className="flex items-center gap-1.5">
-                        Handcrafted with <Heart size={14} className="text-rose-500 animate-pulse" fill="currentColor" /> in Palanpur
+                        Handcrafted with <Heart size={14} className="text-rose-500 animate-pulse" fill="currentColor" /> for Gujarat
                     </p>
                 </div>
             </div>

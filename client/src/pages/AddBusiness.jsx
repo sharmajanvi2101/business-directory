@@ -96,7 +96,7 @@ const AddBusiness = () => {
                                 List your <br />
                                 <span className="premium-gradient-text text-5xl md:text-7xl">Business.</span>
                             </h1>
-                            <p className="text-stone-400 font-medium text-lg max-w-sm">Reach local customers in Palanpur & beyond by listing your service today.</p>
+                            <p className="text-stone-400 font-medium text-lg max-w-sm">Reach local customers across Gujarat by listing your service today.</p>
                         </div>
 
                         <div className="hidden lg:block w-48 h-48 bg-orange-50/50 rounded-[3rem] border border-orange-100 flex items-center justify-center relative shadow-inner">

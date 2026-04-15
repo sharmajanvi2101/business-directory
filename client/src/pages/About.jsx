@@ -38,7 +38,7 @@ const About = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-10">
                         <div className="text-white text-left">
-                            <p className="text-lg font-bold opacity-90">Based in Palanpur, serving all of Gujarat.</p>
+                            <p className="text-lg font-bold opacity-90">Connecting communities across Gujarat, starting from Palanpur and Patan.</p>
                         </div>
                     </div>
                 </motion.div>
