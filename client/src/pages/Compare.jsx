@@ -230,7 +230,8 @@ const Compare = () => {
                             </Link>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
             </div>
         </motion.div>
     );
