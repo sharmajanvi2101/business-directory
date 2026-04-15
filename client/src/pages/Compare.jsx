@@ -107,8 +107,12 @@ const Compare = () => {
                         </Link>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto pb-10 snap-x snap-mandatory no-scrollbar">
-                        <div className="flex gap-4 md:gap-6 pb-4 px-4 md:px-2 min-w-max">
+                    <div className="space-y-4">
+                        <div className="md:hidden flex items-center justify-center gap-2 text-[10px] font-black text-orange-400 uppercase tracking-[0.2em] mb-2 animate-pulse">
+                            <ArrowLeftRight size={10} /> Swipe to compare <ArrowLeftRight size={10} />
+                        </div>
+                        <div className="overflow-x-auto pb-10 snap-x snap-mandatory no-scrollbar -mx-4 px-4">
+                            <div className="flex gap-3 md:gap-6 pb-4 min-w-max">
                             {businesses.map((biz, idx) => (
                                 <motion.div 
                                     key={biz._id}

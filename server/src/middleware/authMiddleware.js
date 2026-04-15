@@ -2,10 +2,16 @@ import jwt from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
 
-const protect = async (req, res, next) => {
+const protect = asyncHandler(async (req, res, next) => {
     let token;
 
+    // Check for cookie
     token = req.cookies.jwt;
+
+    // If no cookie, check for Authorization header
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
 
     if (token) {
         try {
@@ -13,18 +19,18 @@ const protect = async (req, res, next) => {
             req.user = await User.findById(decoded.userId).select('-password');
             if (!req.user) {
                 res.status(401);
-                return next(new Error('Not authorized, user not found'));
+                throw new Error('Not authorized, user not found');
             }
             next();
         } catch (error) {
             res.status(401);
-            return next(new Error('Not authorized, invalid token'));
+            throw new Error('Not authorized, invalid token');
         }
     } else {
         res.status(401);
-        return next(new Error('Not authorized, no token'));
+        throw new Error('Not authorized, no token');
     }
-};
+});
 
 const admin = (req, res, next) => {
     if (req.user && req.user.role === 'admin') {
