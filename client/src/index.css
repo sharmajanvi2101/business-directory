@@ -351,3 +351,15 @@ a:active {
   border-top: 1px solid #fed7aa;
   border-bottom: 1px solid #fed7aa;
 }
+
+/* ============ UTILITIES ============ */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar,
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
