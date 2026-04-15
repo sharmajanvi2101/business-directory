@@ -104,3 +104,4 @@ connectDB().then(() => {
   console.error(`❌ Database Connection Error: ${err.message}`);
   process.exit(1);
 });
+

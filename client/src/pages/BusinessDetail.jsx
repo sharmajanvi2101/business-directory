@@ -32,7 +32,7 @@ const BusinessDetail = () => {
     const [reviewComment, setReviewComment] = useState('');
     const [submittingReview, setSubmittingReview] = useState(false);
     const { user } = useSelector(state => state.auth);
-    const isFavourited = user?.favorites?.includes(id);
+    const isFavourited = user?.favorites?.some(fid => fid.toString() === id);
     const [comparisonList, setComparisonList] = useState([]);
     const [activeTab, setActiveTab] = useState('about');
     const [showDigitalCard, setShowDigitalCard] = useState(false);
@@ -271,7 +271,7 @@ const BusinessDetail = () => {
                                 <div className="flex gap-3 w-full sm:w-auto">
                                     <button
                                         onClick={handleToggleFavorite}
-                                        className={`p-4 backdrop-blur-2xl rounded-2xl border transition-all duration-300 flex-1 sm:flex-initial shadow-xl ${isFavourited
+                                        className={`p-4 backdrop-blur-2xl rounded-2xl border transition-all duration-300 flex-1 sm:flex-initial shadow-xl relative z-30 pointer-events-auto cursor-pointer ${isFavourited
                                             ? 'bg-red-500 border-red-400 text-white shadow-red-900/40'
                                             : 'bg-white/10 border-white/20 text-white hover:bg-white/20 active:scale-95'
                                             }`}

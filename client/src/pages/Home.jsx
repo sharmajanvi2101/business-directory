@@ -112,10 +112,14 @@ const BusinessCard = ({ biz, i, isFavorite, onToggleFavorite, onAddToComparison 
                 {/* Action Buttons */}
                 <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
                     <button
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFavorite(biz._id.toString()); }}
-                        className={`p-2 rounded-xl backdrop-blur-md transition-all ${isFavorite ? 'bg-rose-500 text-white shadow-lg shadow-rose-900/20' : 'bg-white/90 text-stone-600 hover:text-rose-500 border border-stone-100'}`}
+                        onClick={(e) => { 
+                            e.preventDefault(); 
+                            e.stopPropagation(); 
+                            onToggleFavorite(biz._id.toString()); 
+                        }}
+                        className={`p-3 sm:p-2 rounded-xl backdrop-blur-md transition-all pointer-events-auto relative z-20 ${isFavorite ? 'bg-rose-500 text-white shadow-lg shadow-rose-900/20' : 'bg-white/90 text-stone-600 hover:text-rose-500 border border-stone-100'}`}
                     >
-                        <Heart size={16} fill={isFavorite ? 'currentColor' : 'none'} />
+                        <Heart size={18} className="sm:size-[16px]" fill={isFavorite ? 'currentColor' : 'none'} />
                     </button>
                     <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToComparison(biz._id.toString()); }}
@@ -771,7 +775,7 @@ const Home = () => {
                                         key={biz._id}
                                         biz={biz}
                                         i={i}
-                                        isFavorite={user?.favorites?.includes(biz._id)}
+                                        isFavorite={user?.favorites?.some(favId => favId.toString() === biz._id.toString())}
                                         onToggleFavorite={handleToggleFavorite}
                                         onAddToComparison={handleAddToComparison}
                                     />
