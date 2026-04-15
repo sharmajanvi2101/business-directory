@@ -41,21 +41,17 @@ if (process.env.CLIENT_URL) {
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Check if origin matches exactly or is a Vercel preview
-    const isAllowed = !origin || 
-                     allowedOrigins.includes(origin) || 
-                     origin.endsWith(".vercel.app");
-    
-    if (isAllowed) {
+    // Be maximally permissive with origins to solve the blocking issue
+    // but still allow credentials (which requires a specific origin)
+    if (!origin) {
       callback(null, true);
     } else {
-      console.log('🚫 CORS Blocked Origin:', origin);
-      callback(new Error('Not allowed by CORS'));
+      callback(null, origin);
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   exposedHeaders: ['Set-Cookie']
 }));
 
