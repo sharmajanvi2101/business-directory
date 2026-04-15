@@ -224,9 +224,8 @@ const Compare = () => {
                                 <h3 className="font-black text-stone-900 italic uppercase tracking-tighter text-sm md:text-base">Add More</h3>
                                 <p className="text-[9px] md:text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-1">Select another</p>
                             </Link>
-                        </div>
                     </div>
-                )}}
+                )}
             </div>
         </motion.div>
     );
