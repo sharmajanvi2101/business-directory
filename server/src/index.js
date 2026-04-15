@@ -25,24 +25,8 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Server is healthy', timestamp: new Date() });
 });
 
-// Security Middleware
-app.use(helmet());
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "https://business-directory-snowy.vercel.app",
-].filter(Boolean);
-
-if (process.env.CLIENT_URL) {
-  const clientUrl = process.env.CLIENT_URL.trim().replace(/\/$/, "");
-  if (!allowedOrigins.includes(clientUrl)) allowedOrigins.push(clientUrl);
-}
-
 app.use(cors({
   origin: function (origin, callback) {
-    // Be maximally permissive with origins to solve the blocking issue
-    // but still allow credentials (which requires a specific origin)
     if (!origin) {
       callback(null, true);
     } else {
@@ -53,6 +37,12 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   exposedHeaders: ['Set-Cookie']
+}));
+
+// Security Middleware (Configured for Cross-Origin)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
 }));
 
 // Body Parser Middleware
