@@ -926,28 +926,28 @@ const Home = () => {
                 {comparisonList.length > 0 && (
                     <motion.div
                         initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }}
-                        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[80] w-[calc(100%-2rem)] max-w-2xl bg-stone-900 border border-white/10 p-5 rounded-[2.5rem] shadow-2xl backdrop-blur-xl"
+                        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[80] w-[calc(100%-1.5rem)] max-w-2xl bg-stone-900 border border-white/10 p-4 md:p-5 rounded-2xl md:rounded-[2.5rem] shadow-2xl backdrop-blur-xl"
                     >
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-                            <div className="flex items-center gap-6">
-                                <div className="flex -space-x-3">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 md:gap-6">
+                                <div className="flex -space-x-2 md:-space-x-3">
                                     {comparisonList.slice(0, 4).map(id => (
-                                        <div key={id} className="w-10 h-10 rounded-full border-2 border-stone-800 bg-stone-700 flex items-center justify-center text-[10px] text-white font-bold">
+                                        <div key={id} className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-stone-800 bg-stone-700 flex items-center justify-center text-[10px] text-white font-bold">
                                             {id.slice(-2).toUpperCase()}
                                         </div>
                                     ))}
                                 </div>
-                                <div>
-                                    <p className="text-white text-xs font-black uppercase tracking-widest">{comparisonList.length} Selected</p>
-                                    <p className="text-stone-600 text-[10px] font-medium hidden sm:block">Compare them side-by-side</p>
+                                <div className="hidden xs:block">
+                                    <p className="text-white text-[10px] md:text-xs font-black uppercase tracking-widest">{comparisonList.length} Selected</p>
+                                    <p className="text-stone-600 text-[10px] font-medium hidden md:block">Compare them side-by-side</p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 md:gap-3">
                                 <button onClick={() => { localStorage.setItem('comparisonList', JSON.stringify([])); setComparisonList([]); }}
-                                    className="text-stone-600 hover:text-white px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-colors">Clear</button>
-                                <Link to="/compare" className={`px-8 py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg ${comparisonList.length >= 2 ? 'bg-primary-600 text-white shadow-primary-900/20 hover:scale-105 active:scale-95' : 'bg-stone-800 text-stone-500 cursor-not-allowed opacity-50'}`}>
-                                    {comparisonList.length < 2 ? `Add ${2 - comparisonList.length} More` : 'Compare Now'}
+                                    className="text-stone-500 hover:text-white px-2 py-1 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors">Clear</button>
+                                <Link to="/compare" className={`px-4 py-2.5 md:px-8 md:py-3.5 rounded-xl md:rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all shadow-lg ${comparisonList.length >= 2 ? 'bg-primary-600 text-white shadow-primary-900/20 hover:scale-105 active:scale-95' : 'bg-stone-800 text-stone-500 cursor-not-allowed opacity-50'}`}>
+                                    {comparisonList.length < 2 ? `+ Add ${2 - comparisonList.length}` : 'Compare Now'}
                                 </Link>
                             </div>
                         </div>

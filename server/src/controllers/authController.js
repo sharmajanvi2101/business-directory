@@ -79,7 +79,7 @@ const loginUser = asyncHandler(async (req, res) => {
     
     if (user && (await user.matchPassword(trimmedPassword))) {
         console.log(`✅ Login successful: ${normalizedEmail}`);
-        generateToken(res, user._id);
+        const token = generateToken(res, user._id);
         res.status(200).json({
             _id: user._id,
             name: user.name,
@@ -87,7 +87,8 @@ const loginUser = asyncHandler(async (req, res) => {
             phone: user.phone,
             role: user.role,
             profilePicture: user.profilePicture,
-            favorites: user.favorites || []
+            favorites: user.favorites || [],
+            token: token
         });
     } else {
         res.status(401);
